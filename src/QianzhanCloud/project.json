@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0-*",
+  "description": "前瞻云开放平台SDK.",
+
+  "packOptions": {
+    "repository": {
+      "licenseUrl": "https://github.com/TkYu/QianzhanCloud/blob/master/LICENSE",
+      "projectUrl": "https://github.com/TkYu/QianzhanCloud/",
+      "type": "git",
+      "url": "git://github.com/TkYu/QianzhanCloud"
+    },
+    "tags": [
+      "qianzhan"
+    ]
+  },
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "Newtonsoft.Json": "9.0.1"
+  },
+
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50"
+    },
+    "net45": {},
+    "netstandard1.3": {}
+  },
+  "buildOptions": {
+    "keyFile": "./key.snk",
+    "xmlDoc": true
+  },
+  "scripts": {
+    "postcompile": [
+      "dotnet pack --no-build --configuration %compile:Configuration%"
+    ]
+  }
+}
