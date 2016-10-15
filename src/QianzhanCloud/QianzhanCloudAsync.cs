@@ -1,17 +1,16 @@
-﻿using System;
+﻿#if !NET40 && !NET20
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Newtonsoft.Json;
+using System.Linq;
+using System.Threading.Tasks;
 using Qianzhan.Models;
+using Newtonsoft.Json;
 
 namespace Qianzhan
 {
-    /// <summary>
-    /// 前瞻云SDK
-    /// </summary>
     public partial class QianzhanCloud
     {
+
         #region 企业基础信息
         /// <summary>
         /// 多条件联合搜索
@@ -24,7 +23,7 @@ namespace Qianzhan
         /// <param name="bussinessDes">经营范围</param>
         /// <param name="address">企业地址</param>
         /// <param name="gd">股东</param>
-        public OrgCompany[] CombineIndexSearch(string companyName = "", int page = 1, int pagesize = 10, string areaCode = "", string faRen = "", string bussinessDes = "", string address = "", string gd = "")
+        public async Task<OrgCompany[]> CombineIndexSearchAsync(string companyName = "", int page = 1, int pagesize = 10, string areaCode = "", string faRen = "", string bussinessDes = "", string address = "", string gd = "")
         {
             var param = new[]
             {
@@ -37,45 +36,45 @@ namespace Qianzhan
                 new KeyValuePair<string, string>("address", address),
                 new KeyValuePair<string, string>("gd", gd)
             };
-            return Post<OrgCompany[]>("CombineIndexSearch", param);
+            return await PostAsync<OrgCompany[]>("CombineIndexSearch", param);
         }
 
         /// <summary>
         /// 根据公司主键获取机构信息
         /// </summary>
         /// <param name="companyKey">公司主键</param>
-        public OrgCompanyDetail OrgCompanyListByCompanyKey(string companyKey)
+        public async Task<OrgCompanyDetail> OrgCompanyListByCompanyKeyAsync(string companyKey)
         {
-            return Get<OrgCompanyDetail>("OrgCompanyListByCompanyKey", $"companyKey={companyKey}");
+            return await GetAsync<OrgCompanyDetail>("OrgCompanyListByCompanyKey", $"companyKey={companyKey}");
         }
 
         /// <summary>
         /// 根据公司主键获取机构信息
         /// </summary>
         /// <param name="companyKey">公司主键</param>
-        public OrgCompanyDetail GetDtlInfoByCompanyKey(string companyKey)
+        public async Task<OrgCompanyDetail> GetDtlInfoByCompanyKeyAsync(string companyKey)
         {
-            return Get<OrgCompanyDetail>("GetDtlInfoByCompanyKey", $"companyKey={companyKey}");
+            return await GetAsync<OrgCompanyDetail>("GetDtlInfoByCompanyKey", $"companyKey={companyKey}");
         }
 
         /// <summary>
         /// 成员信息查询
         /// </summary>
         /// <param name="companyKey">公司主键</param>
-        public DetailManager[] GetDtlMgrInfo(string companyKey)
+        public async Task<DetailManager[]> GetDtlMgrInfoAsync(string companyKey)
         {
             var param = $"companyKey={companyKey}";
-            return Get<DetailManager[]>("GetDtlMgrInfo", param);
+            return await GetAsync<DetailManager[]>("GetDtlMgrInfo", param);
         }
 
         /// <summary>
         /// 股东信息查询
         /// </summary>
         /// <param name="companyKey">公司主键</param>
-        public DetailGD[] CompanyGDDetail(string companyKey)
+        public async Task<DetailGD[]> CompanyGDDetailAsync(string companyKey)
         {
             var param = $"companyKey={companyKey}";
-            return Get<DetailGD[]>("CompanyGDDetail", param);
+            return await GetAsync<DetailGD[]>("CompanyGDDetail", param);
         }
 
         /// <summary>
@@ -85,50 +84,50 @@ namespace Qianzhan
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
         /// <param name="companyName">企业名称关键字</param>
-        public OrgCompany[] OrgCompany(int areaCode, string companyName = "", int page = 1, int pagesize = 10)
+        public async Task<OrgCompany[]> OrgCompanyAsync(int areaCode, string companyName = "", int page = 1, int pagesize = 10)
         {
             var param = $"areaCode={areaCode}&page={page}&pagesize={pagesize}&companyName={companyName}";
-            return Get<OrgCompany[]>("OrgCompany", param);
+            return await GetAsync<OrgCompany[]>("OrgCompany", param);
         }
 
         /// <summary>
         /// 根据企业全名获取机构信息
         /// </summary>
         /// <param name="companyName">企业全名</param>
-        public OrgCompanyList OrgCompanyListByCompanyName(string companyName)
+        public async Task<OrgCompanyList> OrgCompanyListByCompanyNameAsync(string companyName)
         {
             var param = $"companyName={companyName}";
-            return Get<OrgCompanyList>("OrgCompanyListByCompanyName", param);
+            return await GetAsync<OrgCompanyList>("OrgCompanyListByCompanyName", param);
         }
 
         /// <summary>
         /// 根据机构代码获取机构信息
         /// </summary>
         /// <param name="companyCode">机构代码</param>
-        public OrgCompanyList OrgCompanyListByCompanyCode(string companyCode)
+        public async Task<OrgCompanyList> OrgCompanyListByCompanyCodeAsync(string companyCode)
         {
             var param = $"companyCode={companyCode}";
-            return Get<OrgCompanyList>("OrgCompanyListByCompanyCode", param);
+            return await GetAsync<OrgCompanyList>("OrgCompanyListByCompanyCode", param);
         }
 
         /// <summary>
         /// 根据机构代码获取主体信息
         /// </summary>
         /// <param name="companyCode">机构代码</param>
-        public OrgCompanyDetail GetDtlInfo(string companyCode)
+        public async Task<OrgCompanyDetail> GetDtlInfoAsync(string companyCode)
         {
             var param = $"companyCode={companyCode}";
-            return Get<OrgCompanyDetail>("GetDtlInfo", param);
+            return await GetAsync<OrgCompanyDetail>("GetDtlInfo", param);
         }
 
         /// <summary>
         /// 根据登记证号获取机构信息
         /// </summary>
         /// <param name="regNumber">登记证号</param>
-        public OrgCompanyList OrgCompanyListByNumber(string regNumber)
+        public async Task<OrgCompanyList> OrgCompanyListByNumberAsync(string regNumber)
         {
             var param = $"regNumber={regNumber}";
-            return Get<OrgCompanyList>("OrgCompanyListByNumber", param);
+            return await GetAsync<OrgCompanyList>("OrgCompanyListByNumber", param);
         }
         #endregion
 
@@ -139,10 +138,10 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public CompanyUpdate[] CompanyUpdateSelectPage(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<CompanyUpdate[]> CompanyUpdateSelectPageAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<CompanyUpdate[]>("CompanyUpdateSelectPage", param);
+            return await GetAsync<CompanyUpdate[]>("CompanyUpdateSelectPage", param);
         }
 
         /// <summary>
@@ -151,10 +150,10 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public CompanyRegister[] CompanyRegisterSelectPage(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<CompanyRegister[]> CompanyRegisterSelectPageAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<CompanyRegister[]>("CompanyRegisterSelectPage", param);
+            return await GetAsync<CompanyRegister[]>("CompanyRegisterSelectPage", param);
         }
 
         /// <summary>
@@ -162,10 +161,10 @@ namespace Qianzhan
         /// </summary>
         /// <param name="companyKey">公司主键</param>
         /// <param name="year">年份</param>
-        public CompanyNB[] CompanyNBList(string companyKey, int year)
+        public async Task<CompanyNB[]> CompanyNBListAsync(string companyKey, int year)
         {
             var param = $"companyKey={companyKey}&year={year}";
-            return Get<CompanyNB[]>("CompanyNBList", param);
+            return await GetAsync<CompanyNB[]>("CompanyNBList", param);
         }
 
         /// <summary>
@@ -173,10 +172,10 @@ namespace Qianzhan
         /// </summary>
         /// <param name="companyKey">公司主键</param>
         /// <param name="year">年份， (默认查询所有年份)</param>
-        public CompanyNBDetail[] CompanyNBDetail(string companyKey, int year)
+        public async Task<CompanyNBDetail[]> CompanyNBDetailAsync(string companyKey, int year)
         {
             var param = $"companyKey={companyKey}&year={year}";
-            return Get<CompanyNBDetail[]>("CompanyNBDetail", param);
+            return await GetAsync<CompanyNBDetail[]>("CompanyNBDetail", param);
         }
         #endregion
 
@@ -187,20 +186,20 @@ namespace Qianzhan
         /// <param name="companyName">公司名称</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public CompanyBranch[] CompanyBranchSelectPage(string companyName, int page = 1, int pagesize = 10)
+        public async Task<CompanyBranch[]> CompanyBranchSelectPageAsync(string companyName, int page = 1, int pagesize = 10)
         {
             var param = $"companyName={companyName}&page={page}&pagesize={pagesize}";
-            return Get<CompanyBranch[]>("CompanyBranchSelectPage", param);
+            return await GetAsync<CompanyBranch[]>("CompanyBranchSelectPage", param);
         }
 
         /// <summary>
         /// 对外投资查询
         /// </summary>
         /// <param name="companyName">企业名称</param>
-        public InvestedCompany[] InvestedCompany(string companyName)
+        public async Task<InvestedCompany[]> InvestedCompanyAsync(string companyName)
         {
             var param = $"companyName={companyName}";
-            return Get<InvestedCompany[]>("InvestedCompany", param);
+            return await GetAsync<InvestedCompany[]>("InvestedCompany", param);
         }
         #endregion
 
@@ -211,10 +210,10 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public OrgCompanyPatent[] OrgCompanyPatentList(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<OrgCompanyPatent[]> OrgCompanyPatentListAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<OrgCompanyPatent[]>("OrgCompanyPatentList", param);
+            return await GetAsync<OrgCompanyPatent[]>("OrgCompanyPatentList", param);
         }
 
         /// <summary>
@@ -223,10 +222,10 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public CertificationInfo[] CertificationInfoList(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<CertificationInfo[]> CertificationInfoListAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<CertificationInfo[]>("CertificationInfoList", param);
+            return await GetAsync<CertificationInfo[]>("CertificationInfoList", param);
         }
 
         /// <summary>
@@ -235,10 +234,10 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public SoftwareCopyright[] SoftwareCopyrightList(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<SoftwareCopyright[]> SoftwareCopyrightListAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<SoftwareCopyright[]>("SoftwareCopyrightList", param);
+            return await GetAsync<SoftwareCopyright[]>("SoftwareCopyrightList", param);
         }
 
         /// <summary>
@@ -247,20 +246,20 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public ProductCopyright[] ProductCopyrightList(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<ProductCopyright[]> ProductCopyrightListAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<ProductCopyright[]>("ProductCopyrightList", param);
+            return await GetAsync<ProductCopyright[]>("ProductCopyrightList", param);
         }
 
         /// <summary>
         /// 商标详情
         /// </summary>
         /// <param name="regNo">商标注册号</param>
-        public OrgCompanyBrand OrgCompanyBrandDetail(string regNo)
+        public async Task<OrgCompanyBrand> OrgCompanyBrandDetailAsync(string regNo)
         {
             var param = $"regNo={regNo}";
-            return Get<OrgCompanyBrand>("OrgCompanyBrandDetail", param);
+            return await GetAsync<OrgCompanyBrand>("OrgCompanyBrandDetail", param);
         }
 
         /// <summary>
@@ -269,10 +268,10 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public OrgCompanyBrand[] OrgCompanyBrandList(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<OrgCompanyBrand[]> OrgCompanyBrandListAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<OrgCompanyBrand[]>("OrgCompanyBrandList", param);
+            return await GetAsync<OrgCompanyBrand[]>("OrgCompanyBrandList", param);
         }
         #endregion
 
@@ -283,20 +282,20 @@ namespace Qianzhan
         /// <param name="companyKey">公司主键</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public QZEmploy[] QZEmployList(string companyKey, int page = 1, int pagesize = 10)
+        public async Task<QZEmploy[]> QZEmployListAsync(string companyKey, int page = 1, int pagesize = 10)
         {
             var param = $"companyKey={companyKey}&page={page}&pagesize={pagesize}";
-            return Get<QZEmploy[]>("QZEmployList", param);
+            return await GetAsync<QZEmploy[]>("QZEmployList", param);
         }
 
         /// <summary>
         /// 招聘企业详情
         /// </summary>
         /// <param name="companyKey">公司主键</param>
-        public QZEmployDetail QZEmployQZEmployCompanyDetail(string companyKey)
+        public async Task<QZEmployDetail> QZEmployQZEmployCompanyDetailAsync(string companyKey)
         {
             var param = $"companyKey={companyKey}";
-            return Get<QZEmployDetail>("QZEmployQZEmployCompanyDetail", param);
+            return await GetAsync<QZEmployDetail>("QZEmployQZEmployCompanyDetail", param);
         }
         #endregion
 
@@ -307,10 +306,10 @@ namespace Qianzhan
         /// <param name="input">查询字符串</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public JudgeDoc[] JudgeList(string input, int page = 1, int pagesize = 10)
+        public async Task<JudgeDoc[]> JudgeListAsync(string input, int page = 1, int pagesize = 10)
         {
             var param = $"input={input}&page={page}&pagesize={pagesize}";
-            return Get<JudgeDoc[]>("JudgeList", param);
+            return await GetAsync<JudgeDoc[]>("JudgeList", param);
         }
 
         /// <summary>
@@ -319,20 +318,20 @@ namespace Qianzhan
         /// <param name="companyCode">机构代码</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public JudgeDoc[] JudgeListByCompanyCode(string companyCode, int page = 1, int pagesize = 10)
+        public async Task<JudgeDoc[]> JudgeListByCompanyCodeAsync(string companyCode, int page = 1, int pagesize = 10)
         {
             var param = $"companyCode={companyCode}&page={page}&pagesize={pagesize}";
-            return Get<JudgeDoc[]>("JudgeListByCompanyCode", param);
+            return await GetAsync<JudgeDoc[]>("JudgeListByCompanyCode", param);
         }
 
         /// <summary>
         /// 法院文书详情
         /// </summary>
         /// <param name="judgeId">文书 Id</param>
-        public JudgeDoc JudgeDtlByjudgeId(string judgeId)
+        public async Task<JudgeDoc> JudgeDtlByjudgeIdAsync(string judgeId)
         {
             var param = $"judgeId={judgeId}";
-            return Get<JudgeDoc>("JudgeDtlByjudgeId", param);
+            return await GetAsync<JudgeDoc>("JudgeDtlByjudgeId", param);
         }
 
         /// <summary>
@@ -341,20 +340,20 @@ namespace Qianzhan
         /// <param name="input">查询字符串</param>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public Dishonest[] DishonestList(string input, int page = 1, int pagesize = 10)
+        public async Task<Dishonest[]> DishonestListAsync(string input, int page = 1, int pagesize = 10)
         {
             var param = $"input={input}&page={page}&pagesize={pagesize}";
-            return Get<Dishonest[]>("DishonestList", param);
+            return await GetAsync<Dishonest[]>("DishonestList", param);
         }
 
         /// <summary>
         /// 失信详情
         /// </summary>
         /// <param name="dishonestId">失信 Id</param>
-        public Dishonest DishonestDtlBydishonestId(string dishonestId)
+        public async Task<Dishonest> DishonestDtlBydishonestIdAsync(string dishonestId)
         {
             var param = $"dishonestId={dishonestId}";
-            return Get<Dishonest>("DishonestDtlBydishonestId", param);
+            return await GetAsync<Dishonest>("DishonestDtlBydishonestId", param);
         }
         #endregion
 
@@ -363,13 +362,13 @@ namespace Qianzhan
         /// 获取token
         /// </summary>
         /// <returns></returns>
-        public string GetToken()
+        public async Task<string> GetTokenAsync()
         {
-            if (_saveTokenToFile && File.Exists(_configPath))
+            if (_saveTokenToFile && System.IO.File.Exists(_configPath))
             {
                 try
                 {
-                    var values = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_configPath));
+                    var values = JsonConvert.DeserializeObject<Dictionary<string, string>>(System.IO.File.ReadAllText(_configPath));
                     _expTime = DateTime.ParseExact(values["expTime"], "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None);
                     _token = values["token"];
                 }
@@ -379,98 +378,97 @@ namespace Qianzhan
                 }
             }
             if (_token == null || DateTime.UtcNow > _expTime)
-                RefreshToken();
+                await RefreshTokenAsync();
             return _token;
         }
-
         /// <summary>
         /// 获取所有省份区域代码
         /// </summary>
-        public AreaCode[] GetAllProvince()
+        public async Task<AreaCode[]> GetAllProvinceAsync()
         {
-            return Get<AreaCode[]>("GetAllProvince");
+            return await GetAsync<AreaCode[]>("GetAllProvince");
         }
 
         /// <summary>
         /// 根据省份代码获取下级区域代码
         /// </summary>
         /// <param name="areaCode">区域代码</param>
-        public AreaCode[] GetCityByProvince(string areaCode)
+        public async Task<AreaCode[]> GetCityByProvinceAsync(string areaCode)
         {
             var param = $"areaCode={areaCode}";
-            return Get<AreaCode[]>("GetCityByProvince", param);
+            return await GetAsync<AreaCode[]>("GetCityByProvince", param);
         }
 
         /// <summary>
         /// 文档内公司信息快速抽取
         /// </summary>
         /// <param name="input">需要解析的字符串</param>
-        public ExtractedCompany[] CompanyExtract(string input)
+        public async Task<ExtractedCompany[]> CompanyExtractAsync(string input)
         {
             var param = $"input={input}";
-            return Get<ExtractedCompany[]>("CompanyExtract", param);
+            return await GetAsync<ExtractedCompany[]>("CompanyExtract", param);
         }
 
         /// <summary>
         /// 公司名关键词快速自动提示
         /// </summary>
         /// <param name="input">企业名称前缀</param>
-        public ExtractedCompany[] CompanyInputTips(string input)
+        public async Task<ExtractedCompany[]> CompanyInputTipsAsync(string input)
         {
             var param = $"input={input}";
-            return Get<ExtractedCompany[]>("CompanyInputTips", param);
+            return await GetAsync<ExtractedCompany[]>("CompanyInputTips", param);
         }
 
         /// <summary>
         /// 国家标准行业和产品分析
         /// </summary>
         /// <param name="input">分析字符串</param>
-        public AnalysedProduct[] AnalysisProductAndTrade(string input)
+        public async Task<AnalysedProduct[]> AnalysisProductAndTradeAsync(string input)
         {
             var param = new[]
             {
                 new KeyValuePair<string, string>("input", input)
             };
-            return Post<AnalysedProduct[]>("AnalysisProductAndTrade", param);
+            return await PostAsync<AnalysedProduct[]>("AnalysisProductAndTrade", param);
         }
 
         /// <summary>
         /// 展会行业分析
         /// </summary>
         /// <param name="input">分析字符串</param>
-        public ExhibitionAnalysis[] AnalysisExhibitionTrade(string input)
+        public async Task<ExhibitionAnalysis[]> AnalysisExhibitionTradeAsync(string input)
         {
             var param = new[]
             {
                 new KeyValuePair<string, string>("input", input)
             };
-            return Post<ExhibitionAnalysis[]>("AnalysisExhibitionTrade", param);
+            return await PostAsync<ExhibitionAnalysis[]>("AnalysisExhibitionTrade", param);
         }
 
         /// <summary>
         /// 前瞻行业分析
         /// </summary>
         /// <param name="input">分析字符串</param>
-        public ExhibitionAnalysisForward[] AnalysisForwardTrade(string input)
+        public async Task<ExhibitionAnalysisForward[]> AnalysisForwardTradeAsync(string input)
         {
             var param = new[]
             {
                 new KeyValuePair<string, string>("input", input)
             };
-            return Post<ExhibitionAnalysisForward[]>("AnalysisForwardTrade", param);
+            return await PostAsync<ExhibitionAnalysisForward[]>("AnalysisForwardTrade", param);
         }
 
         /// <summary>
         /// 分析所有行业
         /// </summary>
         /// <param name="input">分析字符串</param>
-        public AllTradeAnalysis[] AnalysisAllTrade(string input)
+        public async Task<AllTradeAnalysis[]> AnalysisAllTradeAsync(string input)
         {
             var param = new[]
             {
                 new KeyValuePair<string, string>("input", input)
             };
-            return Post<AllTradeAnalysis[]>("AnalysisAllTrade", param);
+            return await PostAsync<AllTradeAnalysis[]>("AnalysisAllTrade", param);
         }
 
         /// <summary>
@@ -478,21 +476,22 @@ namespace Qianzhan
         /// </summary>
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
-        public CompanyShow[] CompanyShowList(int page = 1, int pagesize = 2)
+        public async Task<CompanyShow[]> CompanyShowListAsync(int page = 1, int pagesize = 2)
         {
             var param = $"page={page}&pagesize={pagesize}";
-            return Get<CompanyShow[]>("CompanyShowList", param);
+            return await GetAsync<CompanyShow[]>("CompanyShowList", param);
         }
 
         /// <summary>
         /// 企业说详情
         /// </summary>
         /// <param name="newsId">文章 Id</param>
-        public CompanyShowDetail CompanyShowDetail(string newsId)
+        public async Task<CompanyShowDetail> CompanyShowDetailAsync(string newsId)
         {
             var param = $"newsId={newsId}";
-            return Get<CompanyShowDetail>("CompanyShowDetail", param);
+            return await GetAsync<CompanyShowDetail>("CompanyShowDetail", param);
         }
         #endregion
     }
 }
+#endif

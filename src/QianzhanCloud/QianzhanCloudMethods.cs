@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+#if NET20 || NET40
+using System.Net;
+#else
 using System.Linq;
 using System.Net.Http;
+#endif
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -23,107 +26,7 @@ namespace Qianzhan
         private DateTime _expTime;
         #endregion
 
-        #region 内部方法
-        private async Task<JObject> GetToken()
-        {
-            using (var hc = new HttpClient())
-            {
-                var po = $"{BaseURI}/GetToken?type=JSON&appkey={_appkey}&seckey={_seckey}";
-                var data = await hc.GetByteArrayAsync(po);
-                var result = JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(data));
-                if (result.HasValues && (int)result["status"] != 200)
-                    throw new Exception("API请求错误：" + result["message"]);
-                return result;
-            }
-        }
-        private T Get<T>(string iName, string extParams = "")
-        {
-            //return GetAsync<T>(iName, extParams).Result;
-            using (var hc = new HttpClient())
-            {
-                var po = $"{BaseURI}/{iName}?type=JSON&token={Token}&{extParams}";
-                var data = hc.GetByteArrayAsync(po).Result;
-                var value = Encoding.UTF8.GetString(data);
-                var result = JsonConvert.DeserializeObject<JObject>(value);
-                if (!result.HasValues) throw new Exception("返回值解析失败：" + value);
-                if ((int) result["status"] == 200) return result["result"].ToObject<T>();
-                if ((int) result["status"] != 101) throw new Exception("API请求错误：" + result["message"]);
-                RefreshToken();
-                return Get<T>(iName, extParams);
-            }
-        }
-
-        private async Task<T> GetAsync<T>(string iName, string extParams = "")
-        {
-            using (var hc = new HttpClient())
-            {
-                var po = $"{BaseURI}/{iName}?type=JSON&token={Token}&{extParams}";
-                var data = await hc.GetByteArrayAsync(po);
-                var value = Encoding.UTF8.GetString(data);
-                var result = JsonConvert.DeserializeObject<JObject>(value);
-                if (!result.HasValues) throw new Exception("返回值解析失败：" + value);
-                if ((int)result["status"] == 200) return result["result"].ToObject<T>();
-                if ((int)result["status"] != 101) throw new Exception("API请求错误：" + result["message"]);
-                RefreshToken();
-                return await GetAsync<T>(iName, extParams);
-            }
-        }
-
-        private T Post<T>(string iName, KeyValuePair<string, string>[] kv)
-        {
-            //return PostAsync<T>(iName, kv).Result;
-            using (var hc = new HttpClient())
-            {
-                var lst = new Dictionary<string, string>
-                {
-                    {"token", Token},
-                    {"type", "JSON"}
-                };
-                if (kv != null && kv.Any())
-                {
-                    foreach (var keyValuePair in kv)
-                        lst.Add(keyValuePair.Key, keyValuePair.Value);
-                }
-                var po = $"{BaseURI}/{iName}";
-                var data = hc.PostAsync(po, new StringContent(JsonConvert.SerializeObject(lst), Encoding.UTF8, "application/json")).Result;
-                var value = Encoding.UTF8.GetString(data.Content.ReadAsByteArrayAsync().Result);
-                var result = JsonConvert.DeserializeObject<JObject>(value);
-                if (!result.HasValues) throw new Exception("返回值解析失败：" + value);
-                if ((int)result["status"] == 200) return result["result"].ToObject<T>();
-                if ((int)result["status"] != 101) throw new Exception("API请求错误：" + result["message"]);
-                RefreshToken();
-                return Post<T>(iName, kv);
-            }
-        }
-
-        private async Task<T> PostAsync<T>(string iName, KeyValuePair<string, string>[] kv)
-        {
-            using (var hc = new HttpClient())
-            {
-                var lst = new Dictionary<string, string>
-                {
-                    {"token", Token},
-                    {"type", "JSON"}
-                };
-                if (kv != null && kv.Any())
-                {
-                    foreach (var keyValuePair in kv)
-                        lst.Add(keyValuePair.Key, keyValuePair.Value);
-                }
-                var po = $"{BaseURI}/{iName}";
-                var data = await hc.PostAsync(po, new StringContent(JsonConvert.SerializeObject(lst), Encoding.UTF8, "application/json"));
-                var value = Encoding.UTF8.GetString(await data.Content.ReadAsByteArrayAsync());
-                var result = JsonConvert.DeserializeObject<JObject>(value);
-                if (!result.HasValues) throw new Exception("返回值解析失败：" + value);
-                if ((int)result["status"] == 200) return result["result"].ToObject<T>();
-                if ((int)result["status"] != 101) throw new Exception("API请求错误：" + result["message"]);
-                RefreshToken();
-                return await PostAsync<T>(iName, kv);
-            }
-        }
-        #endregion
-
-        #region 入口及令牌
+        #region 入口及属性
         /// <summary>
         /// 入口
         /// </summary>
@@ -139,42 +42,145 @@ namespace Qianzhan
         }
 
         /// <summary>
-        /// 访问令牌
+        /// 请求的超时时间，如果请求超出时间会抛出错误
         /// </summary>
-        public string Token
-        {
-            get
-            {
-                if (_saveTokenToFile && File.Exists(_configPath))
-                {
-                    try
-                    {
-                        var values = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_configPath));
-                        _expTime = DateTime.ParseExact(values["expTime"], "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None);
-                        _token = values["token"];
-                    }
-                    catch
-                    {
-                        //TODO
-                    }
-                }
-                if (_token == null || DateTime.UtcNow > _expTime)
-                    RefreshToken();
-                return _token;
-            }
-        }
+        public int Timeout { get; set; } = 10000;
+        #endregion
 
-        /// <summary>
-        /// 强制刷新Token
-        /// </summary>
-        public void RefreshToken()
+        #region 内部方法
+        private void RefreshToken()
         {
-            var r = GetToken().Result;
-            _token = r["result"].Value<string>("token");
-            _expTime = DateTime.UtcNow.AddSeconds(6600);
+            var url = $"{BaseURI}/GetToken?type=JSON&appkey={_appkey}&seckey={_seckey}";
+            JObject result;
+#if NET20 || NET40
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+            httpWebRequest.Method = "GET";
+            httpWebRequest.Timeout = Timeout;
+            using (var httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse())
+            {
+                var rs = httpWebResponse.GetResponseStream();
+                if (rs == null) throw new Exception("服务器没有返回任何内容");
+                using (var streamReader = new StreamReader(rs))
+                {
+                    var content = streamReader.ReadToEnd();
+                    result = JsonConvert.DeserializeObject<JObject>(content);
+                }
+            }
+#else
+            using (var hc = new HttpClient())
+            {
+                hc.Timeout = TimeSpan.FromMilliseconds(Timeout);
+                var t = hc.GetByteArrayAsync(url);
+                t.Wait(Timeout);
+                if (!t.IsCompleted)
+                    throw new TimeoutException("请求超时");
+                var data = t.Result;
+                result = JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(data));
+            }
+#endif
+            if (result.HasValues && (int)result["status"] != 200)
+                throw new Exception("API请求错误：" + result["message"]);
+            _token = result["result"].Value<string>("token");
+            _expTime = DateTime.UtcNow.AddMinutes(110);
             if (_saveTokenToFile)
                 File.WriteAllText(_configPath, JsonConvert.SerializeObject(new Dictionary<string, string> { { "token", _token }, { "expTime", _expTime.ToString("yyyyMMddHHmmss") } }));
         }
+
+        private T Get<T>(string iName, string extParams = "")
+        {
+            while (true)
+            {
+                var url = $"{BaseURI}/{iName}?type=JSON&token={GetToken()}&{extParams}";
+                string value;
+#if NET20 || NET40
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+                httpWebRequest.Method = "GET";
+                httpWebRequest.Timeout = Timeout;
+                using (var httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse())
+                {
+                    var rs = httpWebResponse.GetResponseStream();
+                    if (rs == null) throw new Exception("服务器没有返回任何内容");
+                    using (var streamReader = new StreamReader(rs))
+                    {
+                        value = streamReader.ReadToEnd();
+                    }
+                }
+#else
+                using (var hc = new HttpClient())
+                {
+                    hc.Timeout = TimeSpan.FromMilliseconds(Timeout);
+                    var t = hc.GetByteArrayAsync(url);
+                    t.Wait(Timeout);
+                    if (!t.IsCompleted)
+                        throw new TimeoutException("请求超时");
+                    var data = t.Result;
+                    value = Encoding.UTF8.GetString(data);
+                }
+#endif
+                var result = JsonConvert.DeserializeObject<JObject>(value);
+                if (!result.HasValues) throw new Exception("返回值解析失败：" + value);
+                if ((int)result["status"] == 200) return result["result"].ToObject<T>();
+                if ((int)result["status"] != 101) throw new Exception("API请求错误：" + result["message"]);
+                RefreshToken();
+            }
+        }
+
+        private T Post<T>(string iName, KeyValuePair<string, string>[] kv)
+        {
+            while (true)
+            {
+                var lst = new Dictionary<string, string>
+                {
+                    {"token", GetToken()}, {"type", "JSON"}
+                };
+                if (kv != null && kv.Length > 0)
+                {
+                    foreach (var keyValuePair in kv)
+                        lst.Add(keyValuePair.Key, keyValuePair.Value);
+                }
+                var url = $"{BaseURI}/{iName}";
+                var requestBody = JsonConvert.SerializeObject(lst);
+                string value;
+#if NET20 || NET40
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Method = "POST";
+                httpWebRequest.Timeout = Timeout;
+                var btBodys = Encoding.UTF8.GetBytes(requestBody);
+                httpWebRequest.ContentLength = btBodys.Length;
+                httpWebRequest.GetRequestStream().Write(btBodys, 0, btBodys.Length);
+                using (var httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse())
+                {
+                    var rs = httpWebResponse.GetResponseStream();
+                    if (rs == null) throw new Exception("服务器没有返回任何内容");
+                    using (var streamReader = new StreamReader(rs))
+                    {
+                        value = streamReader.ReadToEnd();
+                    }
+                }
+#else
+                using (var hc = new HttpClient())
+                {
+                    var t1 = hc.PostAsync(url, new StringContent(requestBody, Encoding.UTF8, "application/json"));
+                    t1.Wait(Timeout);
+                    if (!t1.IsCompleted)
+                        throw new TimeoutException("请求超时");
+                    var data = t1.Result;
+                    var t2 = data.Content.ReadAsByteArrayAsync();
+                    t2.Wait(Timeout);
+                    if (!t2.IsCompleted)
+                        throw new TimeoutException("请求超时");
+                    value = Encoding.UTF8.GetString(t2.Result);
+                }
+#endif
+                var result = JsonConvert.DeserializeObject<JObject>(value);
+                if (!result.HasValues) throw new Exception("返回值解析失败：" + value);
+                if ((int)result["status"] == 200) return result["result"].ToObject<T>();
+                if ((int)result["status"] != 101) throw new Exception("API请求错误：" + result["message"]);
+                RefreshToken();
+            }
+        }
+
         #endregion
     }
 }

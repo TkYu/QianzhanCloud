@@ -1,8 +1,11 @@
 {
-  "version": "1.0.0-*",
-  "description": "前瞻云开放平台SDK.",
-
+  "version": "1.0.3-*",
+  "title": "前瞻云开放平台SDK",
+  "description": "前瞻云开放平台SDK，更专业的企业大数据平台。",
+  "authors": [ "TsungKang" ],
   "packOptions": {
+    "iconUrl": "http://open.qianzhan.com/images/open-logo-64.png",
+    "owners": [ "深圳前瞻资讯股份有限公司" ],
     "repository": {
       "licenseUrl": "https://github.com/TkYu/QianzhanCloud/blob/master/LICENSE",
       "projectUrl": "https://github.com/TkYu/QianzhanCloud/",
@@ -10,21 +13,37 @@
       "url": "git://github.com/TkYu/QianzhanCloud"
     },
     "tags": [
-      "qianzhan"
+      "qianzhan",
+      "前瞻"
     ]
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
     "Newtonsoft.Json": "9.0.1"
   },
 
   "frameworks": {
     "netstandard1.6": {
-      "imports": "dnxcore50"
+      "imports": "dnxcore50",
+      "dependencies": {
+        "NETStandard.Library": "1.6.0"
+      }
     },
-    "net45": {},
-    "netstandard1.3": {}
+    "netstandard1.3": {
+      "dependencies": {
+        "System.Runtime": "4.1.0.*",
+        "System.Runtime.InteropServices": "4.1.0.*",
+        "System.Net.Http": "4.1.0.*",
+        "System.IO.FileSystem": "4.0.1.*"
+      }
+    },
+    "net45": {
+      "dependencies": {
+        "System.Net.Http": "4.0.0.*"
+      }
+    },
+    "net40": {},
+    "net20": {} 
   },
   "buildOptions": {
     "keyFile": "./key.snk",
