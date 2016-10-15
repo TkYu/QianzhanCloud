@@ -365,19 +365,8 @@ namespace Qianzhan
         /// <returns></returns>
         public string GetToken()
         {
-            if (_saveTokenToFile && File.Exists(_configPath))
-            {
-                try
-                {
-                    var values = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_configPath));
-                    _expTime = DateTime.ParseExact(values["expTime"], "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None);
-                    _token = values["token"];
-                }
-                catch
-                {
-                    //TODO
-                }
-            }
+            if (_saveTokenToFile)
+                LoadKeyFromFile();
             if (_token == null || DateTime.UtcNow > _expTime)
                 RefreshToken();
             return _token;

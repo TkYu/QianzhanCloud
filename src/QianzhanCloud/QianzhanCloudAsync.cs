@@ -10,7 +10,6 @@ namespace Qianzhan
 {
     public partial class QianzhanCloud
     {
-
         #region 企业基础信息
         /// <summary>
         /// 多条件联合搜索
@@ -364,19 +363,8 @@ namespace Qianzhan
         /// <returns></returns>
         public async Task<string> GetTokenAsync()
         {
-            if (_saveTokenToFile && System.IO.File.Exists(_configPath))
-            {
-                try
-                {
-                    var values = JsonConvert.DeserializeObject<Dictionary<string, string>>(System.IO.File.ReadAllText(_configPath));
-                    _expTime = DateTime.ParseExact(values["expTime"], "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None);
-                    _token = values["token"];
-                }
-                catch
-                {
-                    //TODO
-                }
-            }
+            if (_saveTokenToFile)
+                LoadKeyFromFile();
             if (_token == null || DateTime.UtcNow > _expTime)
                 await RefreshTokenAsync();
             return _token;

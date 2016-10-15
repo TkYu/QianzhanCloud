@@ -15,19 +15,22 @@ namespace Qianzhan
         #region 内部方法
         private async Task RefreshTokenAsync()
         {
+            _keyLock.EnterWriteLock();
             var url = $"{BaseURI}/GetToken?type=JSON&appkey={_appkey}&seckey={_seckey}";
+            JObject result;
             using (var hc = new HttpClient())
             {
                 hc.Timeout = TimeSpan.FromMilliseconds(Timeout);
                 var data = await hc.GetByteArrayAsync(url);
-                var result = JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(data));
-                if (result.HasValues && (int)result["status"] != 200)
-                    throw new Exception("API请求错误：" + result["message"]);
-                _token = result["result"].Value<string>("token");
-                _expTime = DateTime.UtcNow.AddMinutes(110);
-                if (_saveTokenToFile)
-                    File.WriteAllText(_configPath, JsonConvert.SerializeObject(new Dictionary<string, string> { { "token", _token }, { "expTime", _expTime.ToString("yyyyMMddHHmmss") } }));
+                result = JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(data));
             }
+            if (result.HasValues && (int)result["status"] != 200)
+                throw new Exception("API请求错误：" + result["message"]);
+            _token = result["result"].Value<string>("token");
+            _expTime = DateTime.UtcNow.AddMinutes(110);
+            if (_saveTokenToFile)
+                File.WriteAllText(_configPath, JsonConvert.SerializeObject(new Dictionary<string, string> { { "token", _token }, { "expTime", _expTime.ToString("yyyyMMddHHmmss") } }));
+            _keyLock.ExitWriteLock();
         }
         private async Task<T> GetAsync<T>(string iName, string extParams = "")
         {

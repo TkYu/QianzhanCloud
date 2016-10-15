@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 #if NET20 || NET40
 using System.Net;
 #else
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 #endif
 using System.Text;
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -24,6 +24,11 @@ namespace Qianzhan
         private string _token;
         private readonly string _configPath;
         private DateTime _expTime;
+#if NET20
+        private readonly object _keyLock = new object();
+#else
+        private readonly System.Threading.ReaderWriterLockSlim _keyLock = new System.Threading.ReaderWriterLockSlim();
+#endif
         #endregion
 
         #region 入口及属性
@@ -38,7 +43,7 @@ namespace Qianzhan
             _appkey = appkey;
             _seckey = seckey;
             _saveTokenToFile = saveTokenToFile;
-            _configPath = Path.Combine(Path.GetTempPath(), "QZKeys.json");
+            _configPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "QZKeys.json");
         }
 
         /// <summary>
@@ -48,8 +53,42 @@ namespace Qianzhan
         #endregion
 
         #region 内部方法
+
+        private void LoadKeyFromFile()
+        {
+            if (!File.Exists(_configPath))
+                return;
+#if NET20
+            lock(_keyLock)
+            {
+#else
+                _keyLock.EnterReadLock();
+#endif
+            try
+            {
+                var values = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_configPath));
+                _expTime = DateTime.ParseExact(values["expTime"], "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None);
+                _token = values["token"];
+            }
+            catch
+            {
+                //TODO
+            }
+#if NET20
+            }
+#else
+            _keyLock.ExitReadLock();
+#endif
+        }
+
         private void RefreshToken()
         {
+#if NET20
+            lock(_keyLock)
+            {
+#else
+            _keyLock.EnterWriteLock();
+#endif
             var url = $"{BaseURI}/GetToken?type=JSON&appkey={_appkey}&seckey={_seckey}";
             JObject result;
 #if NET20 || NET40
@@ -84,6 +123,11 @@ namespace Qianzhan
             _expTime = DateTime.UtcNow.AddMinutes(110);
             if (_saveTokenToFile)
                 File.WriteAllText(_configPath, JsonConvert.SerializeObject(new Dictionary<string, string> { { "token", _token }, { "expTime", _expTime.ToString("yyyyMMddHHmmss") } }));
+#if NET20
+            }
+#else
+            _keyLock.ExitWriteLock();
+#endif
         }
 
         private T Get<T>(string iName, string extParams = "")
@@ -181,6 +225,6 @@ namespace Qianzhan
             }
         }
 
-        #endregion
+#endregion
     }
 }
