@@ -85,7 +85,7 @@ namespace Qianzhan
         /// <param name="page">页码</param>
         /// <param name="pagesize">每页数据条数</param>
         /// <param name="companyName">企业名称关键字</param>
-        public OrgCompany[] OrgCompany(int areaCode, string companyName = "", int page = 1, int pagesize = 10)
+        public OrgCompany[] OrgCompany(string companyName, string areaCode = "", int page = 1, int pagesize = 10)
         {
             var param = $"areaCode={areaCode}&page={page}&pagesize={pagesize}&companyName={companyName}";
             return Get<OrgCompany[]>("OrgCompany", param);
